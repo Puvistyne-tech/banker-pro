@@ -1,7 +1,7 @@
 // src/types/index.ts
-export type AnnotationType = 'startingBalance' | 'credit' | 'debit' | 'finalBalance' | 'eraser'; 
+export type AmountType = 'startingBalance' | 'credit' | 'debit' | 'finalBalance' | 'eraser'; 
 
-export interface Annotation {
+export interface Amount {
   id: string;
   pageNumber: number;
   rect: { // Relative to the unscaled page
@@ -12,7 +12,7 @@ export interface Annotation {
   };
   value: number; // Parsed numeric value
   rawValue?: string; // Raw string user might have entered if parsing failed or for display
-  type: AnnotationType;
+  type: AmountType;
 }
 
 export interface VerificationResult {

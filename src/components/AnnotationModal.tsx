@@ -1,26 +1,26 @@
 // src/components/AnnotationModal.tsx
 import React, { useState, useEffect } from 'react';
-import { AnnotationType } from '../types';
+import { AmountType } from '../types';
 import { parseFrenchCurrency } from '../utils/numberUtils';
 
 interface AnnotationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (type: AnnotationType, value: number, rawValue: string) => void;
+  onSave: (type: AmountType, value: number, rawValue: string) => void;
   suggestedText?: string;
   pdfUrl?: string;
 }
 
 interface TableRow {
   id: string;
-  type: AnnotationType;
+  type: AmountType;
   amount: number;
   rawValue: string;
   color: string;
 }
 
 const AnnotationModal: React.FC<AnnotationModalProps> = ({ isOpen, onClose, onSave, suggestedText, pdfUrl }) => {
-  const [selectedType, setSelectedType] = useState<AnnotationType>('credit');
+  const [selectedType, setSelectedType] = useState<AmountType>('credit');
   const [tableData, setTableData] = useState<TableRow[]>([]);
   const [, setError] = useState<string | null>(null);
 
@@ -73,7 +73,7 @@ const AnnotationModal: React.FC<AnnotationModalProps> = ({ isOpen, onClose, onSa
     return balance;
   };
 
-  const handleTypeChange = (rowId: string, newType: AnnotationType) => {
+  const handleTypeChange = (rowId: string, newType: AmountType) => {
     setTableData(prev => prev.map(row => 
       row.id === rowId 
         ? { 
@@ -114,7 +114,7 @@ const AnnotationModal: React.FC<AnnotationModalProps> = ({ isOpen, onClose, onSa
               {typeOptions.map(option => (
                 <button
                   key={option.value}
-                  onClick={() => setSelectedType(option.value as AnnotationType)}
+                  onClick={() => setSelectedType(option.value as AmountType)}
                   className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                     selectedType === option.value
                       ? `${option.color} ${option.textColor} ring-2 ring-offset-2 ring-current`
@@ -143,7 +143,7 @@ const AnnotationModal: React.FC<AnnotationModalProps> = ({ isOpen, onClose, onSa
                     <td className="p-2">
                       <select
                         value={row.type}
-                        onChange={(e) => handleTypeChange(row.id, e.target.value as AnnotationType)}
+                        onChange={(e) => handleTypeChange(row.id, e.target.value as AmountType)}
                         className="bg-transparent border-none focus:ring-0"
                       >
                         {typeOptions.map(opt => (

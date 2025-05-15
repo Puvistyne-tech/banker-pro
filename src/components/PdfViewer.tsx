@@ -1,6 +1,6 @@
 import React from 'react';
 import PdfPageRenderer from './PdfPageRenderer';
-import { Annotation, AnnotationType } from '../types';
+import { Amount, AmountType } from '../types';
 
 interface PdfViewerProps {
   pdfPages: any[];
@@ -8,8 +8,8 @@ interface PdfViewerProps {
   pdfError: string | null;
   visiblePage: number;
   scale: number;
-  handleAnnotationDraw: (rect: any, pageNum: number) => void;
-  getAnnotationsForPage: (pageNum: number) => Annotation[];
+  handleAnnotationDraw: (rect: any, pageNum: number, type?: AmountType) => void;
+  getAnnotationsForPage: (pageNum: number) => Amount[];
   showOverlays: boolean;
   scrollToPage: (pageNum: number) => void;
   legendColors: {
@@ -19,7 +19,7 @@ interface PdfViewerProps {
     finalBalance: string;
     eraser: string;
   };
-  selectedType: AnnotationType;
+  selectedType: AmountType;
   clearSelectedItems?: boolean;
 }
 

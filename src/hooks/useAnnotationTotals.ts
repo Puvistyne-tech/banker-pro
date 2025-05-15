@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Annotation, AnnotationType } from '../types';
+import { Amount, AmountType } from '../types';
 
 interface Totals {
   startingBalance: number;
@@ -10,10 +10,10 @@ interface Totals {
 
 interface UseAnnotationTotalsReturn {
   totals: Totals;
-  groupedAnnotations: Record<AnnotationType, Annotation[]>;
+  groupedAnnotations: Record<AmountType, Amount[]>;
 }
 
-export const useAnnotationTotals = (currentAnnotations: Annotation[]): UseAnnotationTotalsReturn => {
+export const useAnnotationTotals = (currentAnnotations: Amount[]): UseAnnotationTotalsReturn => {
   const totals = useMemo(() => {
     const result: Totals = {
       startingBalance: 0,
@@ -44,7 +44,7 @@ export const useAnnotationTotals = (currentAnnotations: Annotation[]): UseAnnota
       }
       acc[annotation.type].push(annotation);
       return acc;
-    }, {} as Record<AnnotationType, Annotation[]>);
+    }, {} as Record<AmountType, Amount[]>);
   }, [currentAnnotations]);
 
   return {

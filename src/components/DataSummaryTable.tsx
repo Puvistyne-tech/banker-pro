@@ -1,19 +1,24 @@
 // src/components/DataSummaryTable.tsx
-import React from 'react';
-import { Annotation } from '../types';
+import React, { useState } from 'react';
+import { Amount, AmountType } from '../types';
 import { formatCurrency } from '../utils/numberUtils';
+import { useAnnotationStore } from '../features/annotations/annotationStore';
+
+type ValidAnnotationType = Exclude<AmountType, 'eraser'>;
 
 interface DataSummaryTableProps {
-  annotations: Annotation[];
-  legendColors: {
-    startingBalance: string;
-    credit: string;
-    debit: string;
-    finalBalance: string;
-  };
+  annotations: Amount[];
+  legendColors: Record<ValidAnnotationType, string>;
 }
 
-const DataSummaryTable: React.FC<DataSummaryTableProps> = ({ annotations, legendColors }) => {
+const DataSummaryTable: React.FC<DataSummaryTableProps> = ({ 
+  annotations, 
+  legendColors,
+}) => {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState<string>('');
+  const updateAnnotation = useAnnotationStore(state => state.updateAnnotation);
+
   // Calculate totals
   const totals = annotations.reduce((acc, annotation) => {
     if (annotation.type === 'startingBalance') {
@@ -33,6 +38,68 @@ const DataSummaryTable: React.FC<DataSummaryTableProps> = ({ annotations, legend
     finalBalance: 0
   });
 
+  // Calculate expected final balance
+  const calculatedFinalBalance = totals.startingBalance + totals.credit - totals.debit;
+
+  const handleEdit = (type: ValidAnnotationType, value: number) => {
+    const annotation = annotations.find(a => a.type === type);
+    if (annotation) {
+      setEditingId(annotation.id);
+      setEditValue(value.toString());
+    }
+  };
+
+  const handleSave = (id: string) => {
+    const newValue = parseFloat(editValue);
+    if (!isNaN(newValue)) {
+      updateAnnotation(id, { value: newValue });
+    }
+    setEditingId(null);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent, id: string) => {
+    if (e.key === 'Enter') {
+      handleSave(id);
+    } else if (e.key === 'Escape') {
+      setEditingId(null);
+    }
+  };
+
+  const renderEditableCell = (type: ValidAnnotationType, value: number) => {
+    const annotation = annotations.find(a => a.type === type);
+    if (!annotation) return null;
+
+    if (editingId === annotation.id) {
+      return (
+        <div className="flex items-center justify-end gap-2">
+          <input
+            type="number"
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onBlur={() => handleSave(annotation.id)}
+            onKeyDown={(e) => handleKeyPress(e, annotation.id)}
+            className="w-32 p-1 text-right font-mono bg-white border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            autoFocus
+          />
+          <button
+            onClick={() => handleSave(annotation.id)}
+            className="px-2 py-1 text-sm text-white bg-blue-500 rounded hover:bg-blue-600"
+          >
+            Save
+          </button>
+        </div>
+      );
+    }
+    return (
+      <div 
+        onDoubleClick={() => handleEdit(type, value)}
+        className="p-2 text-right font-mono cursor-pointer hover:bg-gray-100 rounded"
+      >
+        {formatCurrency(value)}
+      </div>
+    );
+  };
+
   return (
     <div className="mt-4">
       <table className="w-full border-collapse">
@@ -46,56 +113,70 @@ const DataSummaryTable: React.FC<DataSummaryTableProps> = ({ annotations, legend
               Starting Balance
             </td>
             <td 
-              className="p-2 text-right font-mono"
               style={{ backgroundColor: `${legendColors.startingBalance}20` }}
             >
-              {formatCurrency(totals.startingBalance)}
+              {renderEditableCell('startingBalance', totals.startingBalance)}
             </td>
           </tr>
 
-          {/* Credits and Debits Row */}
+          {/* Credits Row */}
           <tr>
             <td 
               className="p-2 text-left font-medium"
               style={{ backgroundColor: `${legendColors.credit}20` }}
             >
-              Credits
+              Total Credits
             </td>
             <td 
-              className="p-2 text-right font-mono"
               style={{ backgroundColor: `${legendColors.credit}20` }}
             >
-              {formatCurrency(totals.credit)}
-            </td>
-          </tr>
-          <tr>
-            <td 
-              className="p-2 text-left font-medium"
-              style={{ backgroundColor: `${legendColors.debit}20` }}
-            >
-              Debits
-            </td>
-            <td 
-              className="p-2 text-right font-mono"
-              style={{ backgroundColor: `${legendColors.debit}20` }}
-            >
-              {formatCurrency(totals.debit)}
+              {renderEditableCell('credit', totals.credit)}
             </td>
           </tr>
 
-          {/* Final Balance Row */}
+          {/* Debits Row */}
+          <tr>
+            <td 
+              className="p-2 text-left font-medium"
+              style={{ backgroundColor: `${legendColors.debit}20` }}
+            >
+              Total Debits
+            </td>
+            <td 
+              style={{ backgroundColor: `${legendColors.debit}20` }}
+            >
+              {renderEditableCell('debit', totals.debit)}
+            </td>
+          </tr>
+
+          {/* Calculated Final Balance Row */}
           <tr>
             <td 
               className="p-2 text-left font-medium"
               style={{ backgroundColor: `${legendColors.finalBalance}20` }}
             >
-              Final Balance
+              Calculated Final Balance
             </td>
             <td 
+              style={{ backgroundColor: `${legendColors.finalBalance}20` }}
               className="p-2 text-right font-mono"
+            >
+              {formatCurrency(calculatedFinalBalance)}
+            </td>
+          </tr>
+
+          {/* Selected Final Balance Row */}
+          <tr>
+            <td 
+              className="p-2 text-left font-medium"
               style={{ backgroundColor: `${legendColors.finalBalance}20` }}
             >
-              {formatCurrency(totals.finalBalance)}
+              Selected Final Balance
+            </td>
+            <td 
+              style={{ backgroundColor: `${legendColors.finalBalance}20` }}
+            >
+              {renderEditableCell('finalBalance', totals.finalBalance)}
             </td>
           </tr>
         </tbody>

@@ -7,8 +7,8 @@ import { usePdfLoader } from "./hooks/usePdfLoader";
 import { PdfViewer } from "./components/PdfViewer";
 import { PdfControls } from "./components/PdfControls";
 import { EmptyState } from "./components/EmptyState";
-import { setupAppMenu } from './menu';
-import { AnnotationType } from './types';
+import { setupAppMenu } from "./menu";
+import { AmountType } from "./types";
 import DataSummaryTable from "./components/DataSummaryTable";
 import Legend from "./components/Legend";
 import { useRightPanel } from "./hooks/useRightPanel";
@@ -16,11 +16,12 @@ import { useLegendColors } from "./hooks/useLegendColors";
 import { useAnnotationTotals } from "./hooks/useAnnotationTotals";
 import { useAnnotationSelection } from "./hooks/useAnnotationSelection";
 import { AnnotationsTable } from "./components/AnnotationsTable";
+import { verifyBalances } from "./features/verifications/verificationEngine";
 
 function App() {
   const pdfContainerRef = useRef<HTMLDivElement>(null);
   const { rightPanelWidth, handleMouseDown } = useRightPanel();
-  const [selectedType, setSelectedType] = useState<AnnotationType>('credit');
+  const [selectedType, setSelectedType] = useState<AmountType>("credit");
   const { legendColors, handleColorChange } = useLegendColors();
   const [clearSelectedItems, setClearSelectedItems] = useState(false);
 
@@ -76,6 +77,18 @@ function App() {
 
   const { groupedAnnotations } = useAnnotationTotals(currentAnnotations);
 
+  // Add verification result calculation
+  const verificationResult = verifyBalances(
+    currentAnnotations.find((a) => a.type === "startingBalance"),
+    currentAnnotations.find((a) => a.type === "finalBalance"),
+    currentAnnotations
+      .filter((a) => a.type === "credit")
+      .reduce((sum, a) => sum + a.value, 0),
+    currentAnnotations
+      .filter((a) => a.type === "debit")
+      .reduce((sum, a) => sum + a.value, 0)
+  );
+
   // Wrap clearAnnotations to also clear selected items
   const handleClearAnnotations = useCallback(() => {
     clearAnnotations();
@@ -98,9 +111,23 @@ function App() {
       canRedo,
       toggleOverlays,
       handleZoom,
-      currentAnnotations
+      currentAnnotations,
     });
-  }, [pdfDoc, handleFileUpload, closePdf, handleSaveAnnotationsToFile, handleLoadAnnotationsFromFile, handleExport, undo, redo, canUndo, canRedo, toggleOverlays, handleZoom, currentAnnotations]);
+  }, [
+    pdfDoc,
+    handleFileUpload,
+    closePdf,
+    handleSaveAnnotationsToFile,
+    handleLoadAnnotationsFromFile,
+    handleExport,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    toggleOverlays,
+    handleZoom,
+    currentAnnotations,
+  ]);
 
   return (
     <div className="h-screen w-screen bg-gray-50 dark:bg-gray-900 flex flex-row">
@@ -143,7 +170,7 @@ function App() {
       <div
         className="w-1 bg-gray-200 dark:bg-gray-700 cursor-col-resize hover:bg-blue-500 active:bg-blue-600"
         onMouseDown={handleMouseDown}
-        style={{ position: 'absolute', left: 0, top: 0, bottom: 0 }}
+        style={{ position: "absolute", left: 0, top: 0, bottom: 0 }}
       />
 
       {/* Right Side - All Other Components */}
@@ -159,14 +186,15 @@ function App() {
 
         {/* Summary Table */}
         <div className="p-4 border-b border-gray-200">
-          <DataSummaryTable 
-            annotations={currentAnnotations} 
+          <DataSummaryTable
+            annotations={currentAnnotations}
             legendColors={legendColors}
+            isEditable={verificationResult.isValid === false}
           />
         </div>
 
         {/* Annotations Table */}
-        <AnnotationsTable 
+        <AnnotationsTable
           groupedAnnotations={groupedAnnotations}
           legendColors={legendColors}
         />

@@ -1,6 +1,6 @@
 // src/components/Legend.tsx
 import React from "react";
-import { AnnotationType } from "../types";
+import { AmountType } from "../types";
 
 // Color picker component
 const ColorPicker = ({ color, onChange }: { color: string, onChange: (color: string) => void }) => {
@@ -34,10 +34,10 @@ const ColorPicker = ({ color, onChange }: { color: string, onChange: (color: str
 };
 
 interface LegendProps {
-  legendColors: Record<AnnotationType, string>;
-  selectedType: AnnotationType;
-  onTypeSelect: (type: AnnotationType) => void;
-  onColorChange: (type: AnnotationType, color: string) => void;
+  legendColors: Record<AmountType, string>;
+  selectedType: AmountType;
+  onTypeSelect: (type: AmountType) => void;
+  onColorChange: (type: AmountType, color: string) => void;
   clearAnnotations: () => void;
 }
 
@@ -48,7 +48,7 @@ const Legend: React.FC<LegendProps> = ({
   onColorChange,
   clearAnnotations 
 }) => {
-  const getLegendStyle = (type: AnnotationType) => {
+  const getLegendStyle = (type: AmountType) => {
     const isSelected = selectedType === type;
     const color = legendColors[type];
     return {
@@ -69,18 +69,18 @@ const Legend: React.FC<LegendProps> = ({
         ].map((option) => (
           <div
             key={option.type}
-            style={getLegendStyle(option.type as AnnotationType)}
+            style={getLegendStyle(option.type as AmountType)}
             className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all flex-shrink-0"
           >
             <button
-              onClick={() => onTypeSelect(option.type as AnnotationType)}
+              onClick={() => onTypeSelect(option.type as AmountType)}
               className="flex-1 text-left whitespace-nowrap"
             >
               {option.label}
             </button>
             <ColorPicker
-              color={legendColors[option.type as AnnotationType]}
-              onChange={(color) => onColorChange(option.type as AnnotationType, color)}
+              color={legendColors[option.type as AmountType]}
+              onChange={(color) => onColorChange(option.type as AmountType, color)}
             />
           </div>
         ))}

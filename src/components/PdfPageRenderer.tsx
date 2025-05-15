@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Stage, Layer, Image as KonvaImage, Rect as KonvaRect } from 'react-konva';
 import Konva from 'konva';
 import { pdfjsLib } from '../features/pdf/pdfUtils';
-import { Annotation, AnnotationType } from '../types';
+import { Amount, AmountType } from '../types';
 
 interface TextItem {
   id: string;
@@ -15,15 +15,15 @@ interface TextItem {
   isAmount: boolean;
   parsedAmount?: number;
   originalCoords: { x: number; y: number; width: number; height: number };
-  selectedType?: AnnotationType; // Track which type this item was selected as
+  selectedType?: AmountType; // Track which type this item was selected as
 }
 
 interface PdfPageRendererProps {
   page: pdfjsLib.PDFPageProxy | null;
   pageNumber: number;
   scale: number;
-  onAnnotationDraw: (rect: Konva.RectConfig, pageNumber: number, type: AnnotationType) => void;
-  annotations: Annotation[];
+  onAnnotationDraw: (rect: Konva.RectConfig, pageNumber: number, type: AmountType) => void;
+  annotations: Amount[];
   showOverlays: boolean;
   legendColors: {
     startingBalance: string;
@@ -32,7 +32,7 @@ interface PdfPageRendererProps {
     finalBalance: string;
     eraser: string;
   };
-  selectedType: AnnotationType;
+  selectedType: AmountType;
   clearSelectedItems?: boolean;
 }
 
@@ -141,8 +141,8 @@ const PdfPageRenderer: React.FC<PdfPageRendererProps> = ({
               try {
                 const normalizedText = text
                   .replace(/\s+/g, '')
-                  .replace(/\./g, '')
-                  .replace(',', '.')
+                  .replace(/\./g, '')  // Remove dots (thousand separators)
+                  .replace(',', '.')   // Replace comma with dot for decimal
                   .replace('€', '')
                   .trim();
                 
@@ -155,12 +155,15 @@ const PdfPageRenderer: React.FC<PdfPageRendererProps> = ({
             // Create a unique identifier based on position and text
             const id = `${text}_${adjustedX.toFixed(2)}_${adjustedY.toFixed(2)}_${pageNumber}`;
 
+            // Adjust width to better handle numbers with dots
+            const adjustedWidth = text.includes('.') ? estimatedWidth * 1.2 : estimatedWidth;
+
             return {
               id,
               text,
               x: adjustedX,
               y: adjustedY,
-              width: Math.max(estimatedWidth, fontSize),
+              width: Math.max(adjustedWidth, fontSize),
               height: Math.max(estimatedHeight, fontSize),
               isAmount,
               parsedAmount,
@@ -292,7 +295,7 @@ const PdfPageRenderer: React.FC<PdfPageRendererProps> = ({
               width: item.width,
               height: item.height
             };
-            onAnnotationDraw({ ...itemRect, text: item.text }, pageNumber, item.selectedType || 'credit');
+            onAnnotationDraw({ ...itemRect, text: item.text }, pageNumber, 'eraser');
           });
         }
       } else {
@@ -331,7 +334,7 @@ const PdfPageRenderer: React.FC<PdfPageRendererProps> = ({
     setStartPoint(null);
   };
 
-  const getAnnotationColor = (type: AnnotationType) => {
+  const getAnnotationColor = (type: AmountType) => {
     return legendColors[type];
   };
 
@@ -404,9 +407,9 @@ const PdfPageRenderer: React.FC<PdfPageRendererProps> = ({
             width={item.width * scale}
             height={item.height * scale}
             stroke={getAnnotationColor(item.selectedType || selectedType)}
-            strokeWidth={1}
-            opacity={0.3}
-            fill={getColorWithOpacity(getAnnotationColor(item.selectedType || selectedType), 0.1)}
+            strokeWidth={2}
+            opacity={0.5}
+            fill={getColorWithOpacity(getAnnotationColor(item.selectedType || selectedType), 0.3)}
           />
         ))}
       </Layer>

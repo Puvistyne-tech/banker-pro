@@ -1,7 +1,7 @@
 // src/features/annotations/annotationStore.ts
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { Annotation, AnnotationType } from "../../types";
+import { Amount, AmountType } from "../../types";
 import { v4 as uuidv4 } from "uuid"; // npm install uuid @types/uuid
 
 // For undo/redo
@@ -13,7 +13,7 @@ interface HistoryState<T> {
 
 interface VirtualTableEntry {
   id: string;
-  type: AnnotationType;
+  type: AmountType;
   value: number;
   rawValue: string;
   pageNumber: number;
@@ -21,19 +21,19 @@ interface VirtualTableEntry {
 }
 
 interface AnnotationsState {
-  annotationsHistory: HistoryState<Annotation[]>;
+  annotationsHistory: HistoryState<Amount[]>;
   virtualTable: VirtualTableEntry[];
   currentPdfPath: string | null; // To associate annotations with a PDF
   showOverlays: boolean;
 
   setPdfPath: (path: string | null) => void;
   addAnnotation: (
-    annotationData: Omit<Annotation, "id" | "value"> & {
+    annotationData: Omit<Amount, "id" | "value"> & {
       rawValue: string;
       value: number;
     }
   ) => void;
-  updateAnnotation: (id: string, updates: Partial<Annotation>) => void;
+  updateAnnotation: (id: string, updates: Partial<Amount>) => void;
   deleteAnnotation: (id: string) => void;
   clearAnnotations: () => void;
   undo: () => void;
@@ -41,21 +41,21 @@ interface AnnotationsState {
   canUndo: () => boolean;
   canRedo: () => boolean;
   toggleOverlays: () => void;
-  getAnnotationsForPage: (pageNumber: number) => Annotation[];
-  getAnnotationsByType: (type: AnnotationType) => Annotation[];
-  getStartingBalance: () => Annotation | undefined;
-  getFinalBalance: () => Annotation | undefined;
+  getAnnotationsForPage: (pageNumber: number) => Amount[];
+  getAnnotationsByType: (type: AmountType) => Amount[];
+  getStartingBalance: () => Amount | undefined;
+  getFinalBalance: () => Amount | undefined;
   getTotalCredits: () => number;
   getTotalDebits: () => number;
-  setAnnotations: (annotations: Annotation[]) => void; // For loading from file
-  _updateHistory: (newPresent: Annotation[]) => void;
+  setAnnotations: (annotations: Amount[]) => void; // For loading from file
+  _updateHistory: (newPresent: Amount[]) => void;
 
   // New methods for virtual table
   addToVirtualTable: (entry: Omit<VirtualTableEntry, "id" | "timestamp">) => void;
   removeFromVirtualTable: (id: string) => void;
   clearVirtualTable: () => void;
   getVirtualTableEntries: () => VirtualTableEntry[];
-  getVirtualTableEntriesByType: (type: AnnotationType) => VirtualTableEntry[];
+  getVirtualTableEntriesByType: (type: AmountType) => VirtualTableEntry[];
   getVirtualTableTotals: () => {
     startingBalance: number;
     credit: number;
@@ -64,8 +64,8 @@ interface AnnotationsState {
   };
 }
 
-const initialAnnotationsState: Annotation[] = [];
-const initialHistory: HistoryState<Annotation[]> = {
+const initialAnnotationsState: Amount[] = [];
+const initialHistory: HistoryState<Amount[]> = {
   past: [],
   present: initialAnnotationsState,
   future: [],
@@ -88,7 +88,7 @@ export const useAnnotationStore = create<AnnotationsState>()(
           virtualTable: [] // Clear virtual table when changing PDF
         }),
 
-      _updateHistory: (newPresent: Annotation[]) => {
+      _updateHistory: (newPresent: Amount[]) => {
         set((state) => ({
           annotationsHistory: {
             past: [...state.annotationsHistory.past, state.annotationsHistory.present],
@@ -99,7 +99,7 @@ export const useAnnotationStore = create<AnnotationsState>()(
       },
 
       addAnnotation: (annotationData) => {
-        const newAnnotation: Annotation = {
+        const newAnnotation: Amount = {
           id: uuidv4(),
           ...annotationData,
         };

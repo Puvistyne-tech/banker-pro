@@ -5,7 +5,7 @@ import {
   readTextFile,
   writeTextFile,
 } from "@tauri-apps/plugin-fs";
-import { Annotation } from "../types";
+import { Amount } from "../types";
 
 export async function openPdfFile(): Promise<{
   filePath: string;
@@ -31,7 +31,7 @@ export async function openPdfFile(): Promise<{
 }
 
 export async function saveAnnotationsToFile(
-  annotations: Annotation[],
+  annotations: Amount[],
   pdfFilePath: string
 ): Promise<void> {
   const defaultPath = pdfFilePath.replace(/\.pdf$/i, ".annotations.json");
@@ -46,7 +46,7 @@ export async function saveAnnotationsToFile(
 
 export async function loadAnnotationsFromFile(
   pdfFilePath: string
-): Promise<Annotation[] | null> {
+): Promise<Amount[] | null> {
   const defaultPath = pdfFilePath.replace(/\.pdf$/i, ".annotations.json");
   // Try to auto-load from default path first without dialog if it exists
   // This requires checking if file exists, which is more complex with Tauri fs.
@@ -58,7 +58,7 @@ export async function loadAnnotationsFromFile(
   });
   if (typeof selected === "string") {
     const content = await readTextFile(selected);
-    return JSON.parse(content) as Annotation[];
+    return JSON.parse(content) as Amount[];
   }
   return null;
 }
@@ -66,7 +66,7 @@ export async function loadAnnotationsFromFile(
 export async function exportSummary(
   data: {
     verificationResult: any;
-    annotations: Annotation[];
+    annotations: Amount[];
     summary: any; // like the data table content
   },
   format: "json" | "csv" | "pdf_summary" /* PDF summary is complex */

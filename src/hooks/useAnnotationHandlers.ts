@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAnnotationStore } from '../features/annotations/annotationStore';
-import { AnnotationType } from '../types';
+import { AmountType } from '../types';
 import { saveAnnotationsToFile, loadAnnotationsFromFile, exportSummary } from '../lib/tauri';
 import { verifyBalances } from '../features/verifications/verificationEngine';
 
@@ -29,17 +29,33 @@ export const useAnnotationHandlers = ({ currentPdfPath }: UseAnnotationHandlersP
   const getTotalDebits = useAnnotationStore((state) => state.getTotalDebits);
   const setAnnotations = useAnnotationStore((state) => state.setAnnotations);
   const clearAnnotations = useAnnotationStore((state) => state.clearAnnotations);
+  const deleteAnnotation = useAnnotationStore((state) => state.deleteAnnotation);
 
   const currentAnnotations = annotationsHistory.present;
 
-  const handleAnnotationDraw = (rect: any, pageNum: number) => {
-    setPendingAnnotationRect(rect);
-    setPendingAnnotationPage(pageNum);
-    setIsModalOpen(true);
+  const handleAnnotationDraw = (rect: any, pageNum: number, type?: AmountType) => {
+    if (type === 'eraser') {
+      // Find and delete the annotation that matches the rect
+      const annotationToDelete = currentAnnotations.find(ann => 
+        ann.pageNumber === pageNum &&
+        Math.abs(ann.rect.x - rect.x) < 5 &&
+        Math.abs(ann.rect.y - rect.y) < 5 &&
+        Math.abs(ann.rect.width - rect.width) < 5 &&
+        Math.abs(ann.rect.height - rect.height) < 5
+      );
+      
+      if (annotationToDelete) {
+        deleteAnnotation(annotationToDelete.id);
+      }
+    } else {
+      setPendingAnnotationRect(rect);
+      setPendingAnnotationPage(pageNum);
+      setIsModalOpen(true);
+    }
   };
 
   const handleSaveAnnotation = (
-    type: AnnotationType,
+    type: AmountType,
     value: number,
     rawValue: string
   ) => {

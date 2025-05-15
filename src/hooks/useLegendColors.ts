@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { AnnotationType } from '../types';
+import { AmountType } from '../types';
 
 interface LegendColors {
   startingBalance: string;
@@ -19,13 +19,13 @@ const DEFAULT_COLORS: LegendColors = {
 
 interface UseLegendColorsReturn {
   legendColors: LegendColors;
-  handleColorChange: (type: AnnotationType, color: string) => void;
+  handleColorChange: (type: AmountType, color: string) => void;
 }
 
 export const useLegendColors = (): UseLegendColorsReturn => {
   const [legendColors, setLegendColors] = useState<LegendColors>(DEFAULT_COLORS);
 
-  const handleColorChange = useCallback((type: AnnotationType, color: string) => {
+  const handleColorChange = useCallback((type: AmountType, color: string) => {
     setLegendColors(prev => ({
       ...prev,
       [type]: color

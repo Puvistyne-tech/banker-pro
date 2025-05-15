@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { AnnotationType } from '../types';
+import { AmountType } from '../types';
 import { parseFrenchCurrency } from '../utils/numberUtils';
 
 interface Rect {
@@ -8,9 +8,9 @@ interface Rect {
 }
 
 interface UseAnnotationSelectionProps {
-  handleSaveAnnotation: (type: AnnotationType, value: number, text: string) => void;
-  handleAnnotationDraw: (rect: Rect, pageNum: number) => void;
-  selectedType: AnnotationType;
+  handleSaveAnnotation: (type: AmountType, value: number, text: string) => void;
+  handleAnnotationDraw: (rect: Rect, pageNum: number, type?: AmountType) => void;
+  selectedType: AmountType;
 }
 
 interface UseAnnotationSelectionReturn {
@@ -29,7 +29,7 @@ export const useAnnotationSelection = ({
       // Save the annotation
       handleSaveAnnotation(selectedType, value, rect.text);
       // Update visual representation
-      handleAnnotationDraw(rect, pageNum);
+      handleAnnotationDraw(rect, pageNum, selectedType);
     }
   }, [handleSaveAnnotation, handleAnnotationDraw, selectedType]);
 

@@ -1,9 +1,9 @@
 // src/features/verification/verificationEngine.ts
-import { Annotation, VerificationResult } from '../../types';
+import { Amount, VerificationResult } from '../../types';
 
 export function verifyBalances(
-  startingBalance: Annotation | undefined,
-  finalBalance: Annotation | undefined,
+  startingBalance: Amount | undefined,
+  finalBalance: Amount | undefined,
   totalCredits: number,
   totalDebits: number
 ): VerificationResult {
