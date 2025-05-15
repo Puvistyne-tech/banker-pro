@@ -20,7 +20,7 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: x86_64-pc-windows-msi
+          targets: x86_64-pc-windows-msvc
 
       - name: Install frontend dependencies
         run: npm ci
@@ -32,12 +32,12 @@ jobs:
         run: npm install -g @tauri-apps/cli
 
       - name: Build Tauri app for Windows
-        run: tauri build --target x86_64-pc-windows-msi
+        run: tauri build
 
       - name: Upload Windows .exe and .msi artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows-build-artifacts
           path: |
-            src-tauri/target/x86_64-pc-windows-msi/release/bundle/msi/*.msi
-            src-tauri/target/x86_64-pc-windows-msi/release/bundle/msi/*.exe 
+            src-tauri/target/release/bundle/msi/*.msi
+            src-tauri/target/release/bundle/msi/*.exe 
